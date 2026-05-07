@@ -7,6 +7,9 @@
 - Git: https://git-scm.com/downloads  
 - Visual Studio Code: https://code.visualstudio.com/download  
 
+### Database Used
+- MongoDB: https://www.mongodb.com/products/platform/atlas-database
+
 ### Clone the Repository
 
 ```bash
