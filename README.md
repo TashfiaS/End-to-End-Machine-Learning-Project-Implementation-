@@ -10,6 +10,9 @@
 ### Database Used
 - MongoDB: https://www.mongodb.com/products/platform/atlas-database
 
+### Dataset used
+- Kaggle: https://www.kaggle.com/datasets/moro23/easyvisa-dataset
+
 ### Clone the Repository
 
 ```bash
@@ -19,10 +22,10 @@ cd End-to-End-Machine-Learning-Project-Implementation-
 
 ### Create Conda Environment
 ```bash
-conda create -n visa python=3.8 -y
+conda create -n visa2 python=3.10 -y
 ```
 ```bash
-conda activate visa
+conda activate visa2
 ```
 
 ```bash
