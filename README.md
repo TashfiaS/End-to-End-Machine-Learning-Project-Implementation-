@@ -3,6 +3,8 @@
 Predicts whether a US visa application will be **Certified** or **Denied** based on applicant and employer details.  
 Built with a modular ML pipeline: data ingestion from MongoDB → validation → transformation → model training → FastAPI web app.
 
+**Live Demo:** https://usvisa-predictor.onrender.com
+
 ---
 
 ## Tech Stack
