@@ -13,7 +13,6 @@ ARTIFACT_DIR: str = "artifact"
 
 MODEL_FILE_NAME = "model.pkl"
 
-
 TARGET_COLUMN = "case_status"
 CURRENT_YEAR = date.today().year
 PREPROCSSING_OBJECT_FILE_NAME = "preprocessing.pkl"
@@ -31,3 +30,40 @@ DATA_INGESTION_DIR_NAME: str = "data_ingestion"
 DATA_INGESTION_FEATURE_STORE_DIR: str = "feature_store"
 DATA_INGESTION_INGESTED_DIR: str = "ingested"
 DATA_INGESTION_TRAIN_TEST_SPLIT_RATIO: float = 0.2
+
+"""
+Data Validation related constant start with DATA_VALIDATION VAR NAME
+"""
+DATA_VALIDATION_DIR_NAME: str = "data_validation"
+DATA_VALIDATION_DRIFT_REPORT_FILE_NAME: str = "report.yaml"
+
+"""
+Data Transformation related constant start with DATA_TRANSFORMATION VAR NAME
+"""
+DATA_TRANSFORMATION_DIR_NAME: str = "data_transformation"
+DATA_TRANSFORMATION_TRANSFORMED_DATA_DIR: str = "transformed"
+DATA_TRANSFORMATION_TRANSFORMED_OBJECT_DIR: str = "transformed_object"
+
+"""
+Model Trainer related constant start with MODEL_TRAINER VAR NAME
+"""
+MODEL_TRAINER_DIR_NAME: str = "model_trainer"
+MODEL_TRAINER_TRAINED_MODEL_DIR: str = "trained_model"
+MODEL_TRAINER_EXPECTED_SCORE: float = 0.6
+MODEL_TRAINER_MODEL_CONFIG_FILE_PATH: str = os.path.join("config", "model.yaml")
+
+"""
+Model Evaluation related constant start with MODEL_EVALUATION VAR NAME
+"""
+MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE: float = 0.02
+MODEL_BUCKET_NAME: str = "usvisa-mlops"
+MODEL_PUSHER_S3_KEY: str = "model-registry/model.pkl"
+
+"""
+App constants
+"""
+APP_HOST: str = "0.0.0.0"
+APP_PORT: int = 8080
+
+SAVED_MODEL_DIR: str = "saved_models"
+SAVED_MODEL_PATH: str = os.path.join(SAVED_MODEL_DIR, MODEL_FILE_NAME)

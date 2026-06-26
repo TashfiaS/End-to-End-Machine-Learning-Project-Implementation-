@@ -13,14 +13,14 @@
 #     raise USVisaException(e, sys) from e
 
 # from dotenv import load_dotenv
-# import os
+import os
 
 # load_dotenv()
 
-# mongodburl = os.getenv("MONGODB_URL")
-# print(mongodburl)
+mongodburl = os.getenv("MONGODB_URL")
+print(mongodburl)
 
-from us_visa.pipeline.training_pipeline import TrainPipeline
+# from us_visa.pipeline.training_pipeline import TrainPipeline
 
-pipeline= TrainPipeline()
-pipeline.run_pipeline()
+# pipeline= TrainPipeline()
+# pipeline.run_pipeline()

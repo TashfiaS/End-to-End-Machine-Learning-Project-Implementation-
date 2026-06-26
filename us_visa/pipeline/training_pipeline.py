@@ -1,164 +1,112 @@
+import os
+import shutil
 import sys
+
 from us_visa.exception import USvisaException
 from us_visa.logger import logging
+from us_visa.constants import SAVED_MODEL_PATH
 
 from us_visa.components.data_ingestion import DataIngestion
-# from us_visa.components.data_validation import DataValidation
-# from us_visa.components.data_transformation import DataTransformation
-# from us_visa.components.model_trainer import ModelTrainer
-# from us_visa.components.model_evaluation import ModelEvaluation
-# from us_visa.components.model_pusher import ModelPusher
+from us_visa.components.data_validation import DataValidation
+from us_visa.components.data_transformation import DataTransformation
+from us_visa.components.model_trainer import ModelTrainer
 
-from us_visa.entity.config_entity import (DataIngestionConfig)
-# from us_visa.entity.config_entity import (DataIngestionConfig,
-#                                           DataValidationConfig,
-#                                           DataTransformationConfig,
-#                                           ModelTrainerConfig,
-#                                           ModelEvaluationConfig,
-#                                           ModelPusherConfig)
-                                          
-from us_visa.entity.artifact_entity import (DataIngestionArtifact)
-# from us_visa.entity.artifact_entity import (DataIngestionArtifact,
-#                                             DataValidationArtifact,
-#                                             DataTransformationArtifact,
-#                                             ModelTrainerArtifact,
-#                                             ModelEvaluationArtifact,
-#                                             ModelPusherArtifact)
-
+from us_visa.entity.config_entity import (
+    DataIngestionConfig,
+    DataValidationConfig,
+    DataTransformationConfig,
+    ModelTrainerConfig,
+)
+from us_visa.entity.artifact_entity import (
+    DataIngestionArtifact,
+    DataValidationArtifact,
+    DataTransformationArtifact,
+    ModelTrainerArtifact,
+)
 
 
 class TrainPipeline:
     def __init__(self):
         self.data_ingestion_config = DataIngestionConfig()
-        # self.data_validation_config = DataValidationConfig()
-        # self.data_transformation_config = DataTransformationConfig()
-        # self.model_trainer_config = ModelTrainerConfig()
-        # self.model_evaluation_config = ModelEvaluationConfig()
-        # self.model_pusher_config = ModelPusherConfig()
+        self.data_validation_config = DataValidationConfig()
+        self.data_transformation_config = DataTransformationConfig()
+        self.model_trainer_config = ModelTrainerConfig()
 
-
-    
     def start_data_ingestion(self) -> DataIngestionArtifact:
-        """
-        This method of TrainPipeline class is responsible for starting data ingestion component
-        """
         try:
-            logging.info("Entered the start_data_ingestion method of TrainPipeline class")
-            logging.info("Getting the data from mongodb")
+            logging.info("Starting data ingestion")
             data_ingestion = DataIngestion(data_ingestion_config=self.data_ingestion_config)
-            data_ingestion_artifact = data_ingestion.initiate_data_ingestion()
-            logging.info("Got the train_set and test_set from mongodb")
-            logging.info(
-                "Exited the start_data_ingestion method of TrainPipeline class"
-            )
-            return data_ingestion_artifact
+            artifact = data_ingestion.initiate_data_ingestion()
+            logging.info("Data ingestion completed")
+            return artifact
         except Exception as e:
             raise USvisaException(e, sys) from e
-        
-    
 
-    # def start_data_validation(self, data_ingestion_artifact: DataIngestionArtifact) -> DataValidationArtifact:
-    #     """
-    #     This method of TrainPipeline class is responsible for starting data validation component
-    #     """
-    #     logging.info("Entered the start_data_validation method of TrainPipeline class")
+    def start_data_validation(self, data_ingestion_artifact: DataIngestionArtifact) -> DataValidationArtifact:
+        try:
+            logging.info("Starting data validation")
+            data_validation = DataValidation(
+                data_ingestion_artifact=data_ingestion_artifact,
+                data_validation_config=self.data_validation_config,
+            )
+            artifact = data_validation.initiate_data_validation()
+            logging.info("Data validation completed")
+            return artifact
+        except Exception as e:
+            raise USvisaException(e, sys) from e
 
-    #     try:
-    #         data_validation = DataValidation(data_ingestion_artifact=data_ingestion_artifact,
-    #                                          data_validation_config=self.data_validation_config
-    #                                          )
+    def start_data_transformation(
+        self,
+        data_ingestion_artifact: DataIngestionArtifact,
+        data_validation_artifact: DataValidationArtifact,
+    ) -> DataTransformationArtifact:
+        try:
+            logging.info("Starting data transformation")
+            data_transformation = DataTransformation(
+                data_ingestion_artifact=data_ingestion_artifact,
+                data_transformation_config=self.data_transformation_config,
+                data_validation_artifact=data_validation_artifact,
+            )
+            artifact = data_transformation.initiate_data_transformation()
+            logging.info("Data transformation completed")
+            return artifact
+        except Exception as e:
+            raise USvisaException(e, sys) from e
 
-    #         data_validation_artifact = data_validation.initiate_data_validation()
+    def start_model_trainer(self, data_transformation_artifact: DataTransformationArtifact) -> ModelTrainerArtifact:
+        try:
+            logging.info("Starting model training")
+            model_trainer = ModelTrainer(
+                data_transformation_artifact=data_transformation_artifact,
+                model_trainer_config=self.model_trainer_config,
+            )
+            artifact = model_trainer.initiate_model_trainer()
+            logging.info("Model training completed")
+            return artifact
+        except Exception as e:
+            raise USvisaException(e, sys) from e
 
-    #         logging.info("Performed the data validation operation")
+    def save_model_locally(self, trained_model_path: str) -> None:
+        """Copy the trained model to a fixed local path for prediction."""
+        try:
+            os.makedirs(os.path.dirname(SAVED_MODEL_PATH), exist_ok=True)
+            shutil.copy(trained_model_path, SAVED_MODEL_PATH)
+            logging.info(f"Model saved locally at: {SAVED_MODEL_PATH}")
+        except Exception as e:
+            raise USvisaException(e, sys) from e
 
-    #         logging.info(
-    #             "Exited the start_data_validation method of TrainPipeline class"
-    #         )
-
-    #         return data_validation_artifact
-
-    #     except Exception as e:
-    #         raise USvisaException(e, sys) from e
-        
-
-
-    
-
-    # def start_data_transformation(self, data_ingestion_artifact: DataIngestionArtifact, data_validation_artifact: DataValidationArtifact) -> DataTransformationArtifact:
-    #     """
-    #     This method of TrainPipeline class is responsible for starting data transformation component
-    #     """
-    #     try:
-    #         data_transformation = DataTransformation(data_ingestion_artifact=data_ingestion_artifact,
-    #                                                  data_transformation_config=self.data_transformation_config,
-    #                                                  data_validation_artifact=data_validation_artifact)
-    #         data_transformation_artifact = data_transformation.initiate_data_transformation()
-    #         return data_transformation_artifact
-    #     except Exception as e:
-    #         raise USvisaException(e, sys)
-        
-
-    
-    # def start_model_trainer(self, data_transformation_artifact: DataTransformationArtifact) -> ModelTrainerArtifact:
-    #     """
-    #     This method of TrainPipeline class is responsible for starting model training
-    #     """
-    #     try:
-    #         model_trainer = ModelTrainer(data_transformation_artifact=data_transformation_artifact,
-    #                                      model_trainer_config=self.model_trainer_config
-    #                                      )
-    #         model_trainer_artifact = model_trainer.initiate_model_trainer()
-    #         return model_trainer_artifact
-
-    #     except Exception as e:
-    #         raise USvisaException(e, sys)
-        
-    
-
-    # def start_model_evaluation(self, data_ingestion_artifact: DataIngestionArtifact,
-    #                            model_trainer_artifact: ModelTrainerArtifact) -> ModelEvaluationArtifact:
-    #     """
-    #     This method of TrainPipeline class is responsible for starting modle evaluation
-    #     """
-    #     try:
-    #         model_evaluation = ModelEvaluation(model_eval_config=self.model_evaluation_config,
-    #                                            data_ingestion_artifact=data_ingestion_artifact,
-    #                                            model_trainer_artifact=model_trainer_artifact)
-    #         model_evaluation_artifact = model_evaluation.initiate_model_evaluation()
-    #         return model_evaluation_artifact
-    #     except Exception as e:
-    #         raise USvisaException(e, sys)
-        
-
-    
-
-    # def start_model_pusher(self, model_evaluation_artifact: ModelEvaluationArtifact) -> ModelPusherArtifact:
-    #     """
-    #     This method of TrainPipeline class is responsible for starting model pushing
-    #     """
-    #     try:
-    #         model_pusher = ModelPusher(model_evaluation_artifact=model_evaluation_artifact,
-    #                                    model_pusher_config=self.model_pusher_config
-    #                                    )
-    #         model_pusher_artifact = model_pusher.initiate_model_pusher()
-    #         return model_pusher_artifact
-    #     except Exception as e:
-    #         raise USvisaException(e, sys)
-
-        
-
-    
-
-        
-
-    
-    def run_pipeline(self, ) -> None:
-        """
-        This method of TrainPipeline class is responsible for running complete pipeline
-        """
+    def run_pipeline(self) -> None:
         try:
             data_ingestion_artifact = self.start_data_ingestion()
-
+            data_validation_artifact = self.start_data_validation(data_ingestion_artifact)
+            data_transformation_artifact = self.start_data_transformation(
+                data_ingestion_artifact, data_validation_artifact
+            )
+            model_trainer_artifact = self.start_model_trainer(data_transformation_artifact)
+            self.save_model_locally(model_trainer_artifact.trained_model_file_path)
+            logging.info(
+                f"Pipeline complete. Model: {SAVED_MODEL_PATH} | "
+                f"F1: {model_trainer_artifact.metric_artifact.f1_score:.4f}"
+            )
         except Exception as e:
-            raise USvisaException(e, sys)
+            raise USvisaException(e, sys) from e
