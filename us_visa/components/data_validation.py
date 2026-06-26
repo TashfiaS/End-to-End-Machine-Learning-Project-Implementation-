@@ -1,7 +1,7 @@
 import sys
 
+import numpy as np
 import pandas as pd
-from scipy import stats
 
 from us_visa.exception import USvisaException
 from us_visa.logger import logging
@@ -79,22 +79,37 @@ class DataValidation:
 
             for col in numerical_cols:
                 if col in reference_df.columns and col in current_df.columns:
-                    stat, p_value = stats.ks_2samp(
-                        reference_df[col].dropna(), current_df[col].dropna()
-                    )
+                    ref = np.sort(reference_df[col].dropna().values)
+                    cur = np.sort(current_df[col].dropna().values)
+                    all_vals = np.concatenate([ref, cur])
+                    all_vals = np.sort(all_vals)
+                    cdf_ref = np.searchsorted(ref, all_vals, side="right") / len(ref)
+                    cdf_cur = np.searchsorted(cur, all_vals, side="right") / len(cur)
+                    ks_stat = float(np.max(np.abs(cdf_ref - cdf_cur)))
+                    n = len(ref) * len(cur) / (len(ref) + len(cur))
+                    p_value = float(np.exp(-2 * n * ks_stat ** 2))
                     drift_results[col] = {"p_value": p_value, "drifted": p_value < threshold}
 
             for col in categorical_cols:
                 if col in reference_df.columns and col in current_df.columns:
                     ref_counts = reference_df[col].value_counts()
                     cur_counts = current_df[col].value_counts()
-                    all_cats = set(ref_counts.index) | set(cur_counts.index)
-                    ref_freq = [ref_counts.get(c, 0) for c in all_cats]
-                    cur_freq = [cur_counts.get(c, 0) for c in all_cats]
-                    if sum(ref_freq) > 0 and sum(cur_freq) > 0:
-                        stat, p_value = stats.chisquare(cur_freq, f_exp=[
-                            r * sum(cur_freq) / sum(ref_freq) for r in ref_freq
-                        ])
+                    all_cats = sorted(set(ref_counts.index) | set(cur_counts.index))
+                    ref_freq = np.array([ref_counts.get(c, 0) for c in all_cats], dtype=float)
+                    cur_freq = np.array([cur_counts.get(c, 0) for c in all_cats], dtype=float)
+                    ref_total = ref_freq.sum()
+                    cur_total = cur_freq.sum()
+                    if ref_total > 0 and cur_total > 0:
+                        expected = ref_freq * cur_total / ref_total
+                        expected = np.where(expected == 0, 1e-10, expected)
+                        chi2 = float(np.sum((cur_freq - expected) ** 2 / expected))
+                        dof = len(all_cats) - 1
+                        # approximate p-value using chi2 CDF via Wilson-Hilferty
+                        if dof > 0:
+                            z = ((chi2 / dof) ** (1 / 3) - (1 - 2 / (9 * dof))) / np.sqrt(2 / (9 * dof))
+                            p_value = float(0.5 * (1 - np.tanh(z * 0.7978845608 / np.sqrt(2))))
+                        else:
+                            p_value = 1.0
                         drift_results[col] = {"p_value": p_value, "drifted": p_value < threshold}
 
             n_features = len(drift_results)
