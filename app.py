@@ -74,4 +74,6 @@ async def predict_route(request: Request):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=APP_HOST, port=APP_PORT)
+    import os
+    port = int(os.environ.get("PORT", APP_PORT))
+    uvicorn.run(app, host=APP_HOST, port=port)
